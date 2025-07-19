@@ -1,0 +1,264 @@
+
+<!-- templates/dashboard.html - Professional redesign -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Ticketing{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <i class="fas fa-tickets-alt me-3"></i>My Tickets
+    </div>
+    <p class="page-subtitle">Manage and view all your purchased tickets</p>
+</div>
+
+{% if tickets %}
+<!-- Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-ticket-alt stats-icon"></i>
+            <div class="stats-number">{{ tickets|length }}</div>
+            <div class="stats-label">Total Tickets</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-check-circle stats-icon"></i>
+            <div class="stats-number">{{ tickets|selectattr('payment_status', 'equalto', 'paid')|list|length }}</div>
+            <div class="stats-label">Valid Tickets</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-clock stats-icon"></i>
+            <div class="stats-number">{{ tickets|selectattr('payment_status', 'equalto', 'pending')|list|length }}</div>
+            <div class="stats-label">Pending</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-ban stats-icon"></i>
+            <div class="stats-number">{{ tickets|selectattr('is_used', 'equalto', true)|list|length }}</div>
+            <div class="stats-label">Used Tickets</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card mb-4">
+    <div class="card-body">
+        <ul class="nav nav-pills justify-content-center" id="ticketFilter" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button">
+                    <i class="fas fa-list me-2"></i>All Tickets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="valid-tab" data-bs-toggle="pill" data-bs-target="#valid" type="button">
+                    <i class="fas fa-check-circle me-2"></i>Valid
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button">
+                    <i class="fas fa-clock me-2"></i>Pending
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="used-tab" data-bs-toggle="pill" data-bs-target="#used" type="button">
+                    <i class="fas fa-history me-2"></i>Used
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Tickets Grid -->
+<div class="tab-content" id="ticketFilterContent">
+    <div class="tab-pane fade show active" id="all" role="tabpanel">
+        <div class="row">
+            {% for ticket in tickets %}
+            <div class="col-xl-4 col-lg-6 col-md-6 mb-4 ticket-item" 
+                 data-status="{{ ticket.payment_status }}" 
+                 data-used="{{ ticket.is_used|lower }}">
+                <div class="ticket-card status-{{ ticket.payment_status }}">
+                    <!-- Ticket Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1 fw-bold">{{ ticket.event.name }}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-hashtag me-1"></i>{{ ticket.ticket_id[:8] }}...
+                            </small>
+                        </div>
+                        <div class="status-badge">
+                            {% if ticket.payment_status == 'paid' %}
+                                {% if ticket.is_used %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-check me-1"></i>Used
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Valid
+                                    </span>
+                                {% endif %}
+                            {% elif ticket.payment_status == 'pending' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock me-1"></i>Pending
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Failed
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Event Details -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <small class="text-muted">{{ ticket.event.location }}</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar text-primary me-2"></i>
+                                <small class="text-muted">{{ ticket.event.date.strftime('%m/%d/%Y') }}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <div class="mb-2">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <small class="text-muted">{{ ticket.event.date.strftime('%H:%M') }}</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-money-bill text-success me-2"></i>
+                                <strong class="text-success">{{ "{:,.0f}".format(ticket.event.price) }} RWF</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code -->
+                    {% if ticket.payment_status == 'paid' %}
+                    <div class="qr-code-container">
+                        <img src="data:image/png;base64,{{ ticket.qr_image_data }}" 
+                             alt="QR Code" class="img-fluid" style="max-width: 180px;">
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-qrcode me-1"></i>Present at entrance
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('view_ticket', ticket_id=ticket.ticket_id) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                        {% if ticket.payment_status == 'paid' and not ticket.is_used %}
+                        <button class="btn btn-outline-secondary btn-sm" onclick="shareTicket('{{ ticket.ticket_id }}')">
+                            <i class="fas fa-share-alt me-2"></i>Share
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Purchase Date -->
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-shopping-cart me-1"></i>
+                            Purchased {{ ticket.purchase_date.strftime('%m/%d/%Y at %H:%M') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <i class="fas fa-ticket-alt"></i>
+    <h3>No Tickets Yet</h3>
+    <p>You haven't purchased any tickets yet. Start exploring our amazing events!</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-search me-2"></i>Browse Events
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('#ticketFilter button');
+    const ticketItems = document.querySelectorAll('.ticket-item');
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.id.replace('-tab', '');
+            
+            ticketItems.forEach(item => {
+                const status = item.dataset.status;
+                const isUsed = item.dataset.used === 'true';
+                
+                let show = false;
+                
+                switch(filter) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'valid':
+                        show = status === 'paid' && !isUsed;
+                        break;
+                    case 'pending':
+                        show = status === 'pending';
+                        break;
+                    case 'used':
+                        show = isUsed;
+                        break;
+                }
+                
+                if (show) {
+                    item.style.display = 'block';
+                    item.style.animation = 'fadeIn 0.5s ease';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+
+// Share ticket function
+function shareTicket(ticketId) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Event Ticket',
+            text: 'Check out my ticket for this event!',
+            url: window.location.origin + '/ticket/' + ticketId
+        });
+    } else {
+        // Fallback - copy to clipboard
+        const url = window.location.origin + '/ticket/' + ticketId;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Ticket link copied to clipboard!');
+        });
+    }
+}
+
+// Add fade in animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

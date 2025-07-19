@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Smart Ticketing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-calendar-alt"></i> Available Events
+        </h1>
+    </div>
+</div>
+
+{% if events %}
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ event.name }}</h5>
+                <p class="card-text">{{ event.description }}</p>
+                
+                <div class="mb-2">
+                    <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ event.location }}
+                </div>
+                
+                <div class="mb-2">
+                    <strong><i class="fas fa-calendar"></i> Date:</strong> 
+                    {{ event.date.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+                
+                <div class="mb-2">
+                    <strong><i class="fas fa-users"></i> Capacity:</strong> {{ event.max_capacity }}
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-money-bill"></i> Price:</strong> 
+                    <span class="text-success">{{ "{:,.0f}".format(event.price) }} RWF</span>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('purchase_ticket', event_id=event.id) }}" 
+                       class="btn btn-primary w-100">
+                        <i class="fas fa-shopping-cart"></i> Purchase Ticket
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary w-100">
+                        Login to Purchase
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center">
+    <i class="fas fa-calendar-times fa-5x text-muted mb-3"></i>
+    <h3>No Events Available</h3>
+    <p class="text-muted">Check back later for upcoming events!</p>
+</div>
+{% endif %}
+{% endblock %}

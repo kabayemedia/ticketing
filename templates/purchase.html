@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Purchase Ticket - {{ event.name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4"><i class="fas fa-shopping-cart"></i> Purchase Ticket</h2>
+                <div class="event-details mb-4">
+                    <h4>{{ event.name }}</h4>
+                    <p>{{ event.description }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ event.location }}</p>
+                            <p><strong><i class="fas fa-calendar"></i> Date:</strong> {{ event.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-users"></i> Capacity:</strong> {{ event.max_capacity }}</p>
+                            <p><strong><i class="fas fa-money-bill"></i> Price:</strong> <span class="text-success fs-4">{{ "{:,.0f}".format(event.price) }} RWF</span></p>
+                        </div>
+                    </div>
+                </div>
+                <form method="POST">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Payment Information:</strong><br>
+                        Payment will be processed via mobile money from your registered phone number: {{ current_user.phone }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-credit-card"></i> Pay {{ "{:,.0f}".format(event.price) }} RWF
+                        </button>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

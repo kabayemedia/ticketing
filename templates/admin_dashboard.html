@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Smart Ticketing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5>Total Tickets</h5>
+                <h2>{{ stats.total_tickets }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>Paid Tickets</h5>
+                <h2>{{ stats.paid_tickets }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5>Used Tickets</h5>
+                <h2>{{ stats.used_tickets }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5>Revenue</h5>
+                <h2>{{ "{:,.0f}".format(stats.revenue) }} RWF</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h3>Recent Entry Logs</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Ticket ID</th>
+                        <th>User</th>
+                        <th>Event</th>
+                        <th>Status</th>
+                        <th>Device</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_entries %}
+                    <tr>
+                        <td>{{ entry.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>{{ entry.ticket.ticket_id if entry.ticket else 'N/A' }}</td>
+                        <td>{{ entry.ticket.user.username if entry.ticket else 'Unknown' }}</td>
+                        <td>{{ entry.ticket.event.name if entry.ticket else 'Unknown' }}</td>
+                        <td>
+                            {% if entry.status == 'granted' %}
+                                <span class="badge bg-success">{{ entry.status }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ entry.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ entry.device_id }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
